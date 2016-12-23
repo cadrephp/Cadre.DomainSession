@@ -1,0 +1,32 @@
+{
+    "name": "cadre/domain-session",
+    "description": "Library for managing session data within the domain",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+    },
+    "require-dev": {
+        "mikey179/vfsStream": "^1.6.4",
+        "pds/skeleton": "1.x-dev",
+        "phing/phing": "^2.15",
+        "phpunit/phpunit": "^5.0",
+        "squizlabs/php_codesniffer": "^2.6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cadre\\Domain_Session\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cadre\\Domain_Session\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Cadre.Domain_Session Contributors",
+            "homepage": "https://github.com/cadrephp/Cadre.Domain_Session/contributors"
+        }
+    ],
+    "minimum-stability": "stable"
+}

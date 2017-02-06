@@ -4,6 +4,20 @@ All notable changes to this package will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## 0.2.0 - 2017-02-06
+### Changed
+- Removed start and finish from DomainSession
+- Switched from __get, __set, __isset, and __unset magic methods to get, set, has, and remove methods
+
+### Added
+- DomainSessionId encapsulates value, startingValue and regenerating id
+- New DomainSessionManager with start and finish methods
+- DomainSession now has all method that returns all data values
+
+### Removed 
+- DomainSessionFactory no longer needed, logic handled by DomainSessionManager
+- IdFactory and IdFactoryInterface, now using random_bytes exclusively
+
 ## 0.1.0 - 2016-12-23
 ### Added
 - Initial release

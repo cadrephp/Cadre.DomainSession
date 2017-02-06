@@ -1,135 +1,107 @@
 <?php
+declare(strict_types=1);
 namespace Cadre\Domain_Session;
+
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 
 class DomainSession implements DomainSessionInterface
 {
-    protected $id = null;
-    protected $startingId = null;
-    protected $data = null;
-    protected $storage;
-    protected $finished = false;
+    protected $id;
+    protected $data;
+    protected $created;
+    protected $updated;
+    protected $expires;
 
     public function __construct(
-        $id,
-        DomainSessionStorageInterface $storage
+        DomainSessionId $id,
+        array $data,
+        DateTime $created,
+        DateTime $updated,
+        DateTime $expires
     ) {
-        $this->id = trim($id);
-        $this->startingId = $this->id;
-        $this->storage = $storage;
+        $this->id = $id;
+        $this->data = $data;
+        $this->created = $created;
+        $this->updated = $updated;
+        $this->expires = $expires;
     }
 
-    public function __get($key)
+    public static function withId(DomainSessionId $id, $interval = 'PT3M')
     {
-        if ($this->data === null) {
-            $this->start();
-        }
-
-        return $this->data->$key;
+        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
+        $expires = clone ($updated);
+        $expires->add(new DateInterval($interval));
+        $session = new static($id, [], $created, $updated, $expires);
+        return $session;
     }
 
-    public function __set($key, $val)
+    public function all()
     {
-        if ($this->finished) {
-            throw new DomainSessionException("Session {$this->id} is already finished");
-        }
-
-        if ($this->data === null) {
-            $this->start();
-        }
-
-        $this->data->$key = $val;
+        return $this->data;
     }
 
-    public function __isset($key)
+    public function get(string $key, $default = null)
     {
-        if ($this->data === null) {
-            $this->start();
-        }
-
-        return isset($this->data->$key);
+        return array_key_exists($key, $this->data) ? $this->data[$key] : $default;
     }
 
-    public function __unset($key)
+    public function set(string $key, $val)
     {
-        if ($this->finished) {
-            throw new DomainSessionException("Session {$this->id} is already finished");
-        }
-
-        if ($this->data === null) {
-            $this->start();
-        }
-
-        unset($this->data->$key);
+        $this->markAsUpdated();
+        $this->data[$key] = $val;
     }
 
-    public function __destruct()
+    public function has(string $key): bool
     {
-        if (! $this->finished) {
-            $this->finish();
-        }
+        return array_key_exists($key, $this->data);
     }
 
-    public function getId()
+    public function remove(string $key)
+    {
+        $this->markAsUpdated();
+        unset($this->data[$key]);
+    }
+
+    public function id(): DomainSessionId
     {
         return $this->id;
     }
 
-    public function getStartingId()
+    public function created(): DateTime
     {
-        return $this->startingId;
+        return clone $this->created;
     }
 
-    public function hasUpdatedId()
+    public function updated(): DateTime
     {
-        return $this->startingId !== $this->id;
+        return clone $this->updated;
     }
 
-    public function start()
+    public function expires(): DateTime
     {
-        if ($this->finished) {
-            throw new DomainSessionException("Session {$this->id} cannot be restarted");
-        }
-
-        if ($this->data !== null) {
-            return;
-        }
-
-        if ($this->id === '') {
-            $this->id = $this->storage->newId();
-        }
-
-        $this->data = (object) $this->storage->read($this->id);
+        return clone $this->expires;
     }
 
-    public function finish()
+    public function renew($interval = 'PT3M')
     {
-        if ($this->data === null) {
-            // never started!
-            return;
-        }
-
-        if ($this->finished) {
-            // already finished
-            return;
-        }
-
-        $this->storage->write($this->id, (array) $this->data);
-        $this->finished = true;
+        $this->markAsUpdated();
+        $this->expires = clone $this->updated;
+        $this->expires->add(new DateInterval($interval));
     }
 
-    public function regenerateId()
+    public function isExpired(DateTime $when = null): bool
     {
-        if ($this->data === null) {
-            $this->start();
+        if (is_null($when)) {
+            $when = new DateTime('now', new DateTimeZone('UTC'));
         }
 
-        if ($this->finished) {
-            throw new DomainSessionException("Session {$this->id} is already finished");
-        }
+        return ($this->expires <= $when);
+    }
 
-        $oldId = $this->id;
-        $this->id = $this->storage->newId();
-        $this->storage->rename($oldId, $this->id);
-        return $this->id;
+    protected function markAsUpdated()
+    {
+        $this->updated = new DateTime('now', new DateTimeZone('UTC'));
     }
 }

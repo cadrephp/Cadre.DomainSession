@@ -1,102 +1,76 @@
 <?php
+declare(strict_types=1);
 namespace Cadre\Domain_Session;
 
 class DomainSessionStorageFiles implements DomainSessionStorageInterface
 {
-    protected $idFactory;
     protected $path;
-    protected $cacheExpire;
 
-    public function __construct(IdFactoryInterface $idFactory, $path, $cacheExpire = 180)
+    public function __construct($path)
     {
-        $this->idFactory = $idFactory;
         $this->path = $path;
-        $this->cacheExpire = $cacheExpire;
     }
 
-    public function newId()
+    public function createNew($interval = 'PT3M'): DomainSession
     {
-        do {
-            $id = ($this->idFactory)();
-        } while ($this->exists($id));
-
-        return $id;
+        return DomainSession::withId(
+            DomainSessionId::withNewValue(),
+            $interval
+        );
     }
 
-    public function read($id)
+    public function read(string $id): DomainSession
     {
-        if ($this->isExpired($id)) {
-            $this->delete($id);
+        $filename = $this->getFilename($id);
+
+        if (file_exists($filename)) {
+            $source = @unserialize(file_get_contents($filename));
+            if (false === $source) {
+                throw new DomainSessionException("Session {$id} not unserializable.");
+            }
+            return new DomainSession(
+                new DomainSessionId($id),
+                $source['data'],
+                $source['created'],
+                $source['updated'],
+                $source['expires']
+            );
         }
 
-        $file = $this->getFile($id);
-
-        if (file_exists($file)) {
-            return $this->unserialize(file_get_contents($file));
-        }
-
-        return [];
+        throw new DomainSessionException("Session {$id} not found.");
     }
 
-    public function write($id, array $data)
+    public function write(DomainSessionInterface $session)
     {
-        $file = $this->getFile($id);
+        if ($session->id()->hasUpdatedValue()) {
+            $this->delete($session->id()->startingValue());
+        }
+
+        $filename = $this->getFilename($session->id()->value());
 
         file_put_contents(
-            $file,
-            $this->serialize($data)
+            $filename,
+            serialize([
+                'data' => $session->all(),
+                'created' => $session->created(),
+                'updated' => $session->updated(),
+                'expires' => $session->expires(),
+            ])
         );
     }
 
-    public function rename($oldId, $newId)
+    public function delete(string $id)
     {
-        $oldFile = $this->getFile($oldId);
-        $newFile = $this->getFile($newId);
+        $filename = $this->getFilename($id);
 
-        if (!file_exists($oldFile)) {
-            throw new DomainSessionException("Session {$oldId} doesn't exist");
+        if (file_exists($filename)) {
+            unlink($filename);
         }
-
-        if ($this->isExpired($newId)) {
-            $this->delete($newId);
-        } elseif (file_exists($newFile)) {
-            throw new DomainSessionException("Session {$newId} already exists");
-        }
-
-        rename($oldFile, $newFile);
     }
 
-    public function delete($id)
-    {
-        unlink($this->getFile($id));
-    }
-
-    public function exists($id)
-    {
-        return file_exists($this->getFile($id));
-    }
-
-    protected function getFile($id)
+    protected function getFilename(string $id)
     {
         // Sanitizing id for filename
-        return $this->path . DIRECTORY_SEPARATOR . preg_replace('![^a-z0-9_\-\.]!i', '_', $id);
-    }
-
-    protected function isExpired($id)
-    {
-        return (
-            $this->exists($id) &&
-            time() - filectime($this->getFile($id)) >= $this->cacheExpire
-        );
-    }
-
-    protected function serialize($data)
-    {
-        return serialize($data);
-    }
-
-    protected function unserialize($serial)
-    {
-        return unserialize($serial);
+        return $this->path . DIRECTORY_SEPARATOR . bin2hex($id);
     }
 }

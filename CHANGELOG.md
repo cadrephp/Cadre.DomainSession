@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## 0.2.1 - 2017-02-06
+### Added
+- Finishing a session locks the DomainSession object from further updates
+
 ## 0.2.0 - 2017-02-06
 ### Changed
 - Removed start and finish from DomainSession

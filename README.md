@@ -32,4 +32,8 @@ $session = $factory($id);
 $session->start();
 $session->username = 'tester';
 $session->finish();
+
+if ($session->hasUpdatedId()) {
+    setcookie('PHP_SESSION', $session->getId());
+}
 ```

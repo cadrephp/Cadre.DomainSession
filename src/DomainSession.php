@@ -13,6 +13,7 @@ class DomainSession implements DomainSessionInterface
     protected $created;
     protected $updated;
     protected $expires;
+    protected $locked = false;
 
     public function __construct(
         DomainSessionId $id,
@@ -100,8 +101,16 @@ class DomainSession implements DomainSessionInterface
         return ($this->expires <= $when);
     }
 
+    public function lock()
+    {
+        $this->locked = true;
+    }
+
     protected function markAsUpdated()
     {
+        if ($this->locked) {
+            throw new DomainSessionException('Cannot update a locked session');
+        }
         $this->updated = new DateTime('now', new DateTimeZone('UTC'));
     }
 }

@@ -53,6 +53,19 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('default', $session->get('biz', 'default'));
     }
 
+    public function testUpdateLockedSession()
+    {
+        $session = DomainSession::withId(
+            DomainSessionId::withNewValue()
+        );
+
+        $session->lock();
+
+        $this->expectException(DomainSessionException::class);
+
+        $session->set('foo', 'bar');
+    }
+
     public function testRenew()
     {
         $id = $this->createMock(DomainSessionId::class);

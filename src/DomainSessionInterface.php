@@ -18,4 +18,5 @@ interface DomainSessionInterface
     public function expires(): DateTime;
     public function renew($interval = 'PT3M');
     public function isExpired(DateTime $when = null): bool;
+    public function lock();
 }

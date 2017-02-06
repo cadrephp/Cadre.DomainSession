@@ -29,6 +29,7 @@ class DomainSessionManager
 
     public function finish(DomainSessionInterface $session)
     {
+        $session->lock();
         $this->storage->write($session);
     }
 }

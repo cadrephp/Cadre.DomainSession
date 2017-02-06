@@ -1,50 +1,56 @@
 <?php
+declare(strict_types=1);
 namespace Cadre\Domain_Session;
+
+use DateTime;
+use DateTimeZone;
 
 class DomainSessionStorageMemory implements DomainSessionStorageInterface
 {
-    protected $idFactory;
     protected $sessions = [];
 
-    public function __construct(IdFactoryInterface $idFactory)
+    public function createNew($interval = 'PT3M'): DomainSession
     {
-        $this->idFactory = $idFactory;
+        return DomainSession::withId(
+            DomainSessionId::withNewValue(),
+            $interval
+        );
     }
 
-    public function newId()
-    {
-        return ($this->idFactory)();
-    }
-
-    public function read($id)
+    public function read(string $id): DomainSession
     {
         if (isset($this->sessions[$id])) {
-            return $this->sessions[$id];
-        } else {
-            return [];
+            $source = @unserialize($this->sessions[$id]);
+            if (false === $source) {
+                throw new DomainSessionException("Session {$id} not unserializable.");
+            }
+            return new DomainSession(
+                new DomainSessionId($id),
+                $source['data'],
+                $source['created'],
+                $source['updated'],
+                $source['expires']
+            );
         }
+
+        throw new DomainSessionException("Session {$id} not found.");
     }
 
-    public function write($id, array $data)
+    public function write(DomainSessionInterface $session)
     {
-        $this->sessions[$id] = $data;
-    }
-
-    public function rename($oldId, $newId)
-    {
-        if (!isset($this->sessions[$oldId])) {
-            throw new DomainSessionException("Session {$oldId} doesn't exist");
+        if ($session->id()->hasUpdatedValue()) {
+            $this->delete($session->id()->startingValue());
         }
 
-        if (isset($this->sessions[$newId])) {
-            throw new DomainSessionException("Session {$newId} already exists");
-        }
-
-        $this->sessions[$newId] = $this->sessions[$oldId];
-        $this->delete($oldId);
+        $this->sessions[$session->id()->value()] = serialize([
+            'data' => $session->all(),
+            'created' => $session->created(),
+            'updated' => $session->updated(),
+            'expires' => $session->expires(),
+        ]);
     }
 
-    public function delete($id)
+    public function delete(string $id)
     {
         if (isset($this->sessions[$id])) {
             unset($this->sessions[$id]);

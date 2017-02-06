@@ -1,94 +1,88 @@
 <?php
 namespace Cadre\Domain_Session;
 
-class DomainSessionStorageNullTest extends \PHPUnit_Framework_TestCase
+class DomainSessionStorageMemoryTest extends \PHPUnit_Framework_TestCase
 {
-    private $idFactory;
-
-    public function setUp()
+    public function testReadMissingId()
     {
-        $this->idFactory = $this->createMock(IdFactoryInterface::class);
-        $this->idFactory
-            ->method('__invoke')
-            ->willReturn('newId');
-    }
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
 
-    public function testNewId()
-    {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
+        $storage = new DomainSessionStorageMemory();
 
-        $this->assertEquals('newId', $storage->newId());
-    }
-
-    public function testReadNewId()
-    {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $this->assertEquals([], $storage->read('id'));
-    }
-
-    public function testReadExistingId()
-    {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $storage->write('id', ['data']);
-
-        $this->assertEquals(['data'], $storage->read('id'));
-    }
-
-    public function testWriteId()
-    {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $storage->write('id', ['data']);
-
-        $this->assertEquals(['data'], $storage->read('id'));
-    }
-
-    public function testRenameId()
-    {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $storage->write('oldId', ['data']);
-        $storage->rename('oldId', 'newId');
-
-        $this->assertEquals([], $storage->read('oldId'));
-        $this->assertEquals(['data'], $storage->read('newId'));
-    }
-
-    public function testRenameMissingId()
-    {
         $this->expectException(DomainSessionException::class);
-        $this->expectExceptionMessage('Session oldId doesn\'t exist');
 
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $storage->rename('oldId', 'newId');
+        $storage->read($id);
     }
 
-    public function testRenameToExistingId()
+    public function testReadUnserializableId()
     {
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
+
+        $storage = new DomainSessionStorageMemory();
+
+        $reflectionClass = new \ReflectionClass(DomainSessionStorageMemory::class);
+        $reflectionProperty = $reflectionClass->getProperty('sessions');
+        $reflectionProperty->setAccessible(true);
+        $bogus = [$id->value() => 'bogus-dsadh89h32huih3jk4h23'];
+        $reflectionProperty->setValue($storage, $bogus);
+
         $this->expectException(DomainSessionException::class);
-        $this->expectExceptionMessage('Session newId already exists');
 
-        $storage = new DomainSessionStorageMemory($this->idFactory);
-
-        $storage->write('oldId', ['data']);
-        $storage->write('newId', ['data']);
-
-        $storage->rename('oldId', 'newId');
+        $storage->read($id);
     }
 
-    public function testDeleteId()
+    public function testCreateAndWriteNewId()
     {
-        $storage = new DomainSessionStorageMemory($this->idFactory);
+        $storage = new DomainSessionStorageMemory();
 
-        $storage->write('id', ['data']);
+        $session = $storage->createNew();
+        $id = $session->id()->value();
 
-        $this->assertEquals(['data'], $storage->read('id'));
+        $storage->write($session);
 
-        $storage->delete('id');
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
+    }
 
-        $this->assertEquals([], $storage->read('id'));
+    public function testWriteRegeneratedId()
+    {
+        $storage = new DomainSessionStorageMemory();
+
+        $session = $storage->createNew();
+        $id = $session->id()->value();
+
+        $storage->write($session);
+
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
+
+        $session->id()->regenerate();
+
+        $storage->write($session);
+
+        $this->expectException(DomainSessionException::class);
+
+        $storage->read($id);
+    }
+
+    public function testDeleteMissingId()
+    {
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
+
+        $storage = new DomainSessionStorageMemory();
+
+        $storage->write($session);
+
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
+
+        $storage->delete($id);
+
+        $this->expectException(DomainSessionException::class);
+
+        $storage->read($id);
     }
 }

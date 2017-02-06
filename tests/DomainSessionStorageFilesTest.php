@@ -12,147 +12,86 @@ class DomainSessionStorageFilesTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->root = vfsStream::setup('SessionDir');
-        $this->idFactory = $this->createMock(IdFactoryInterface::class);
-        $this->idFactory
-            ->method('__invoke')
-            ->willReturn('newId');
     }
 
-    public function testNewId()
+    public function testReadMissingId()
     {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
 
-        $this->assertEquals('newId', $storage->newId());
-    }
+        $storage = new DomainSessionStorageFiles($this->root->url());
 
-    public function testReadNewId()
-    {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        $this->assertFalse($this->root->hasChild('id'));
-        $this->assertEquals([], $storage->read('id'));
-        $this->assertFalse($this->root->hasChild('id'));
-    }
-
-    public function testReadExistingId()
-    {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        vfsStream::newFile('id')
-            ->at($this->root)
-            ->setContent(serialize(['data']));
-
-        $this->assertEquals(['data'], $storage->read('id'));
-    }
-
-    public function testReadExpiredId()
-    {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        vfsStream::newFile('id')
-            ->at($this->root)
-            ->setContent(serialize(['data']))
-            ->lastAttributeModified(time() - 200);
-
-        $this->assertEquals([], $storage->read('id'));
-    }
-
-    public function testWriteId()
-    {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        $this->assertFalse($this->root->hasChild('id'));
-
-        $storage->write('id', ['data']);
-
-        $this->assertTrue($this->root->hasChild('id'));
-        $this->assertEquals(
-            ['data'],
-            unserialize($this->root->getChild('id')->getContent())
-        );
-    }
-
-    public function testRenameId()
-    {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        $ctime = time() - 50;
-
-        vfsStream::newFile('oldId')
-            ->at($this->root)
-            ->setContent(serialize(['data']))
-            ->lastAttributeModified($ctime);
-
-        $this->assertTrue($this->root->hasChild('oldId'));
-
-        $storage->rename('oldId', 'newId');
-
-        $this->assertFalse($this->root->hasChild('oldId'));
-        $this->assertTrue($this->root->hasChild('newId'));
-        $this->assertEquals($ctime, $this->root->getChild('newId')->filectime());
-    }
-
-    public function testRenameMissingId()
-    {
         $this->expectException(DomainSessionException::class);
-        $this->expectExceptionMessage('Session oldId doesn\'t exist');
 
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        $storage->rename('oldId', 'newId');
+        $storage->read($id);
     }
 
-    public function testRenameToExistingId()
+    public function testReadUnserializableId()
     {
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
+
+        vfsStream::newFile(bin2hex($id))
+            ->at($this->root)
+            ->setContent('bogus-dsadh89h32huih3jk4h23');
+
+        $storage = new DomainSessionStorageFiles($this->root->url());
+
         $this->expectException(DomainSessionException::class);
-        $this->expectExceptionMessage('Session newId already exists');
 
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
-
-        vfsStream::newFile('oldId')
-            ->at($this->root)
-            ->setContent(serialize(['data']));
-
-        vfsStream::newFile('newId')
-            ->at($this->root)
-            ->setContent(serialize(['data']));
-
-        $storage->rename('oldId', 'newId');
+        $storage->read($id);
     }
 
-    public function testRenameToExpiredId()
+    public function testCreateAndWriteNewId()
     {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
+        $storage = new DomainSessionStorageFiles($this->root->url());
 
-        vfsStream::newFile('oldId')
-            ->at($this->root)
-            ->setContent(serialize(['data']));
+        $session = $storage->createNew();
+        $id = $session->id()->value();
 
-        vfsStream::newFile('newId')
-            ->at($this->root)
-            ->setContent(serialize(['expired data']))
-            ->lastAttributeModified(time() - 200);
+        $storage->write($session);
 
-        $storage->rename('oldId', 'newId');
-
-        $this->assertEquals(
-            ['data'],
-            unserialize($this->root->getChild('newId')->getContent())
-        );
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
     }
 
-    public function testDeleteId()
+    public function testWriteRegeneratedId()
     {
-        $storage = new DomainSessionStorageFiles($this->idFactory, vfsStream::url('SessionDir'), 180);
+        $storage = new DomainSessionStorageFiles($this->root->url());
 
-        vfsStream::newFile('id')
-            ->at($this->root)
-            ->setContent(serialize(['data']));
+        $session = $storage->createNew();
+        $id = $session->id()->value();
 
-        $this->assertTrue($this->root->hasChild('id'));
+        $storage->write($session);
 
-        $storage->delete('id');
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
 
-        $this->assertFalse($this->root->hasChild('id'));
+        $session->id()->regenerate();
+
+        $storage->write($session);
+
+        $this->expectException(DomainSessionException::class);
+
+        $storage->read($id);
+    }
+
+    public function testDeleteMissingId()
+    {
+        $id = DomainSessionId::withNewValue();
+        $session = DomainSession::withId($id);
+
+        $storage = new DomainSessionStorageFiles($this->root->url());
+
+        $storage->write($session);
+
+        $this->assertInstanceOf(DomainSessionInterface::class, $storage->read($id));
+        $this->assertEquals($session->id(), $storage->read($id)->id());
+
+        $storage->delete($id);
+
+        $this->expectException(DomainSessionException::class);
+
+        $s2 = $storage->read($id);
     }
 }

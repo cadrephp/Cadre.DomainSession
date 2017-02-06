@@ -1,184 +1,95 @@
 <?php
 namespace Cadre\Domain_Session;
 
+use DateTime;
+use DateTimeZone;
+
 class DomainSessionTest extends \PHPUnit_Framework_TestCase
 {
-    public function testStartNewSession()
+    public function testCreation()
     {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
+        $id = $this->createMock(DomainSessionId::class);
+        $id->expects($this->once())->method('__toString')->willReturn('id');
 
-        $session = new DomainSession('', $storage);
-        $session->start();
+        $data = [];
 
-        $this->assertEquals('id', $session->getId());
-        $this->assertEquals('', $session->getStartingId());
-    }
+        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
+        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-    public function testRestartNewSession()
-    {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
+        $session = new DomainSession($id, $data, $created, $updated, $expires);
 
-        $session = new DomainSession('', $storage);
-        $session->start();
-        $session->start();
-    }
-
-    public function testRestartFinishedSession()
-    {
-        $this->expectException(DomainSessionException::class);
-
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
-
-        $session = new DomainSession('', $storage);
-        $session->start();
-        $session->finish();
-        $session->start();
-    }
-
-    public function testFinishWritesSession()
-    {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
-        $storage->expects($this->once())->method('write')->with(
-            $this->equalTo('id'),
-            $this->equalTo(['data' => 'testing'])
-        );
-
-        $session = new DomainSession('', $storage);
-        $session->data = 'testing';
-        $session->finish();
-    }
-
-    public function testFinishNonStartedSession()
-    {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->never())->method('newId');
-        $storage->expects($this->never())->method('read');
-        $storage->expects($this->never())->method('write');
-
-        $session = new DomainSession('', $storage);
-        $session->finish();
-
-        $this->assertEquals('', $session->getId());
-    }
-
-    public function testRefinishSession()
-    {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
-        $storage->expects($this->once())->method('write');
-
-        $session = new DomainSession('', $storage);
-        $session->start();
-        $session->finish();
-        $session->finish();
-    }
-
-    public function testRegenerateSession()
-    {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage
-            ->expects($this->exactly(2))
-            ->method('newId')
-            ->will($this->onConsecutiveCalls('oldId', 'newId'));
-        $storage->expects($this->once())->method('read')->willReturn([]);
-        $storage->expects($this->once())->method('rename')->with('oldId', 'newId');
-
-        $session = new DomainSession('', $storage);
-        $session->regenerateId();
-
-        $this->assertTrue($session->hasUpdatedId());
-    }
-
-    public function testRegenerateFinishedSession()
-    {
-        $this->expectException(DomainSessionException::class);
-
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
-        $storage->expects($this->once())->method('write');
-        $storage->expects($this->never())->method('rename');
-
-        $session = new DomainSession('', $storage);
-        $session->start();
-        $session->finish();
-        $session->regenerateId();
+        $this->assertEquals('id', $session->id());
+        $this->assertFalse($session->isExpired());
+        $this->assertEquals($created->getTimestamp(), $session->created()->getTimestamp());
+        $this->assertEquals($updated->getTimestamp(), $session->updated()->getTimestamp());
+        $this->assertEquals($expires->getTimestamp(), $session->expires()->getTimestamp());
     }
 
     public function testAccessors()
     {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('newId')->willReturn('id');
-        $storage->expects($this->once())->method('read')->willReturn([]);
+        $id = $this->createMock(DomainSessionId::class);
 
-        $session = new DomainSession('', $storage);
+        $data = ['foo' => 'bar'];
 
-        $this->assertFalse(isset($session->data));
+        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
+        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-        $session->data = 'testing';
+        $session = new DomainSession($id, $data, $created, $updated, $expires);
 
-        $this->assertTrue(isset($session->data));
-        $this->assertEquals('testing', $session->data);
+        $this->assertTrue($session->has('foo'));
+        $this->assertEquals('bar', $session->get('foo'));
 
-        unset($session->data);
+        $this->assertFalse($session->has('biz'));
+        $this->assertEquals('default', $session->get('biz', 'default'));
 
-        $this->assertFalse(isset($session->data));
+        $session->set('biz', 'testing');
+
+        $this->assertTrue($session->has('biz'));
+        $this->assertEquals('testing', $session->get('biz', 'default'));
+
+        $session->remove('biz');
+
+        $this->assertFalse($session->has('biz'));
+        $this->assertEquals('default', $session->get('biz', 'default'));
     }
 
-    public function testAutoStartOnGet()
+    public function testRenew()
     {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('read')->willReturn(['data' => 'testing']);
+        $id = $this->createMock(DomainSessionId::class);
 
-        $session = new DomainSession('id', $storage);
+        $data = [];
 
-        $this->assertEquals('testing', $session->data);
+        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
+        $oldExpires = new DateTime('+1 minutes', new DateTimeZone('UTC'));
+        $newExpires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
+
+        $session = new DomainSession($id, $data, $created, $updated, $oldExpires);
+        $session->renew('PT3M');
+
+        $this->assertEquals(
+            $newExpires->getTimestamp(),
+            $session->expires()->getTimestamp(),
+            '',
+            5
+        );
     }
 
-    public function testAutoStartOnUnset()
+    public function testSerializable()
     {
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('read')->willReturn(['data' => 'testing']);
+        $id = $this->createMock(DomainSessionId::class);
+        $id->expects($this->once())->method('__toString')->willReturn('id');
 
-        $session = new DomainSession('id', $storage);
+        $data = ['data' => 'testing'];
 
-        unset($session->data);
-    }
+        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
+        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-    public function testSetFinishedSession()
-    {
-        $this->expectException(DomainSessionException::class);
+        $session = new DomainSession($id, $data, $created, $updated, $expires);
 
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('read')->willReturn([]);
-        $storage->expects($this->once())->method('write');
+        $serializedSession = serialize($session);
 
-        $session = new DomainSession('id', $storage);
-        $session->start();
-        $session->finish();
-        $session->data = 'testing';
-    }
+        $other = unserialize($serializedSession);
 
-    public function testUnsetFinishedSession()
-    {
-        $this->expectException(DomainSessionException::class);
-
-        $storage = $this->createMock(DomainSessionStorageInterface::class);
-        $storage->expects($this->once())->method('read')->willReturn(['data' => 'testing']);
-        $storage->expects($this->once())->method('write');
-
-        $session = new DomainSession('id', $storage);
-        $session->start();
-        $session->finish();
-        unset($session->data);
+        $this->assertEquals((string) $session->id(), (string) $other->id());
     }
 }

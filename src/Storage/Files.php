@@ -29,7 +29,7 @@ class Files implements StorageInterface
         $filename = $this->getFilename($id);
 
         if (file_exists($filename)) {
-            $source = @unserialize(file_get_contents($filename));
+            $source = $this->unserialize(file_get_contents($filename));
             if (false === $source) {
                 throw new SessionException("Session {$id} not unserializable.");
             }
@@ -77,5 +77,13 @@ class Files implements StorageInterface
     {
         // Sanitizing id for filename
         return $this->path . DIRECTORY_SEPARATOR . bin2hex($id);
+    }
+
+    private function unserialize($serialized)
+    {
+        $level = error_reporting(0);
+        $unserialized = unserialize($serialized);
+        error_reporting($level);
+        return $unserialized;
     }
 }

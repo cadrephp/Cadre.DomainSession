@@ -15,18 +15,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Cadre\\Domain_Session\\": "src/"
+            "Cadre\\DomainSession\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Cadre\\Domain_Session\\": "tests/"
+            "Cadre\\DomainSession\\": "tests/"
         }
     },
     "authors": [
         {
-            "name": "Cadre.Domain_Session Contributors",
-            "homepage": "https://github.com/cadrephp/Cadre.Domain_Session/contributors"
+            "name": "Cadre.DomainSession Contributors",
+            "homepage": "https://github.com/cadrephp/Cadre.DomainSession/contributors"
         }
     ],
     "minimum-stability": "stable"

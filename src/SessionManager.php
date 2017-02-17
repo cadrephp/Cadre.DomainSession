@@ -1,25 +1,27 @@
 <?php
 declare(strict_types=1);
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
-class DomainSessionManager
+use Cadre\DomainSession\Storage\StorageInterface;
+
+class SessionManager
 {
     protected $storage;
 
-    public function __construct(DomainSessionStorageInterface $storage)
+    public function __construct(StorageInterface $storage)
     {
         $this->storage = $storage;
     }
 
-    public function start(string $id): DomainSessionInterface
+    public function start(string $id): SessionInterface
     {
         try {
             $session = $this->storage->read($id);
-        } catch (DomainSessionException $e) {
+        } catch (SessionException $e) {
             $session = $this->storage->createNew();
         }
 
-        if ($session instanceof DomainSessionInterface && $session->isExpired()) {
+        if ($session instanceof SessionInterface && $session->isExpired()) {
             $this->storage->delete($id);
             $session = $this->storage->createNew();
         }
@@ -27,7 +29,7 @@ class DomainSessionManager
         return $session;
     }
 
-    public function finish(DomainSessionInterface $session)
+    public function finish(SessionInterface $session)
     {
         $session->lock();
         $this->storage->write($session);

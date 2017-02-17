@@ -1,8 +1,13 @@
 <?php
 declare(strict_types=1);
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession\Storage;
 
-class DomainSessionStorageFiles implements DomainSessionStorageInterface
+use Cadre\DomainSession\Session;
+use Cadre\DomainSession\SessionException;
+use Cadre\DomainSession\SessionId;
+use Cadre\DomainSession\SessionInterface;
+
+class Files implements StorageInterface
 {
     protected $path;
 
@@ -11,25 +16,25 @@ class DomainSessionStorageFiles implements DomainSessionStorageInterface
         $this->path = $path;
     }
 
-    public function createNew($interval = 'PT3M'): DomainSession
+    public function createNew($interval = 'PT3M'): Session
     {
-        return DomainSession::withId(
-            DomainSessionId::withNewValue(),
+        return Session::withId(
+            SessionId::withNewValue(),
             $interval
         );
     }
 
-    public function read(string $id): DomainSession
+    public function read(string $id): Session
     {
         $filename = $this->getFilename($id);
 
         if (file_exists($filename)) {
             $source = @unserialize(file_get_contents($filename));
             if (false === $source) {
-                throw new DomainSessionException("Session {$id} not unserializable.");
+                throw new SessionException("Session {$id} not unserializable.");
             }
-            return new DomainSession(
-                new DomainSessionId($id),
+            return new Session(
+                new SessionId($id),
                 $source['data'],
                 $source['created'],
                 $source['updated'],
@@ -37,10 +42,10 @@ class DomainSessionStorageFiles implements DomainSessionStorageInterface
             );
         }
 
-        throw new DomainSessionException("Session {$id} not found.");
+        throw new SessionException("Session {$id} not found.");
     }
 
-    public function write(DomainSessionInterface $session)
+    public function write(SessionInterface $session)
     {
         if ($session->id()->hasUpdatedValue()) {
             $this->delete($session->id()->startingValue());

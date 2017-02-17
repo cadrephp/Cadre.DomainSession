@@ -1,17 +1,18 @@
 <?php
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
 use DateTime;
 use DateTimeZone;
+use Cadre\DomainSession\Storage\Memory;
 
-class DomainSessionManagerTest extends \PHPUnit_Framework_TestCase
+class SessionManagerTest extends \PHPUnit_Framework_TestCase
 {
     public function testNewSession()
     {
         $id = '';
 
-        $storage = new DomainSessionStorageMemory();
-        $manager = new DomainSessionManager($storage);
+        $storage = new Memory();
+        $manager = new SessionManager($storage);
 
         $session = $manager->start($id);
         $session->set('foo', 'bar');
@@ -22,12 +23,12 @@ class DomainSessionManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testExpiredSession()
     {
-        $storage = new DomainSessionStorageMemory();
-        $manager = new DomainSessionManager($storage);
+        $storage = new Memory();
+        $manager = new SessionManager($storage);
 
         $session = $storage->createNew('PT3M');
 
-        $reflectionClass = new \ReflectionClass(DomainSession::class);
+        $reflectionClass = new \ReflectionClass(Session::class);
         $reflectionProperty = $reflectionClass->getProperty('expires');
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($session, new DateTime('-10 minutes', new DateTimeZone('UTC')));

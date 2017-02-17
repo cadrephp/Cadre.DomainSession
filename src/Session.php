@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
 use DateInterval;
 use DateTime;
 use DateTimeZone;
 
-class DomainSession implements DomainSessionInterface
+class Session implements SessionInterface
 {
     protected $id;
     protected $data;
@@ -16,7 +16,7 @@ class DomainSession implements DomainSessionInterface
     protected $locked = false;
 
     public function __construct(
-        DomainSessionId $id,
+        SessionId $id,
         array $data,
         DateTime $created,
         DateTime $updated,
@@ -29,7 +29,7 @@ class DomainSession implements DomainSessionInterface
         $this->expires = $expires;
     }
 
-    public static function withId(DomainSessionId $id, $interval = 'PT3M')
+    public static function withId(SessionId $id, $interval = 'PT3M')
     {
         $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
         $expires = clone ($updated);
@@ -65,7 +65,7 @@ class DomainSession implements DomainSessionInterface
         unset($this->data[$key]);
     }
 
-    public function id(): DomainSessionId
+    public function id(): SessionId
     {
         return $this->id;
     }
@@ -109,7 +109,7 @@ class DomainSession implements DomainSessionInterface
     protected function markAsUpdated()
     {
         if ($this->locked) {
-            throw new DomainSessionException('Cannot update a locked session');
+            throw new SessionException('Cannot update a locked session');
         }
         $this->updated = new DateTime('now', new DateTimeZone('UTC'));
     }

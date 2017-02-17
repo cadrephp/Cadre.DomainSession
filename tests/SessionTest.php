@@ -1,14 +1,14 @@
 <?php
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
 use DateTime;
 use DateTimeZone;
 
-class DomainSessionTest extends \PHPUnit_Framework_TestCase
+class SessionTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreation()
     {
-        $id = $this->createMock(DomainSessionId::class);
+        $id = $this->createMock(SessionId::class);
         $id->expects($this->once())->method('__toString')->willReturn('id');
 
         $data = [];
@@ -16,7 +16,7 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
         $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
         $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new DomainSession($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $updated, $expires);
 
         $this->assertEquals('id', $session->id());
         $this->assertFalse($session->isExpired());
@@ -27,14 +27,14 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
 
     public function testAccessors()
     {
-        $id = $this->createMock(DomainSessionId::class);
+        $id = $this->createMock(SessionId::class);
 
         $data = ['foo' => 'bar'];
 
         $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
         $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new DomainSession($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $updated, $expires);
 
         $this->assertTrue($session->has('foo'));
         $this->assertEquals('bar', $session->get('foo'));
@@ -55,20 +55,20 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
 
     public function testUpdateLockedSession()
     {
-        $session = DomainSession::withId(
-            DomainSessionId::withNewValue()
+        $session = Session::withId(
+            SessionId::withNewValue()
         );
 
         $session->lock();
 
-        $this->expectException(DomainSessionException::class);
+        $this->expectException(SessionException::class);
 
         $session->set('foo', 'bar');
     }
 
     public function testRenew()
     {
-        $id = $this->createMock(DomainSessionId::class);
+        $id = $this->createMock(SessionId::class);
 
         $data = [];
 
@@ -76,7 +76,7 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
         $oldExpires = new DateTime('+1 minutes', new DateTimeZone('UTC'));
         $newExpires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new DomainSession($id, $data, $created, $updated, $oldExpires);
+        $session = new Session($id, $data, $created, $updated, $oldExpires);
         $session->renew('PT3M');
 
         $this->assertEquals(
@@ -89,7 +89,7 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
 
     public function testSerializable()
     {
-        $id = $this->createMock(DomainSessionId::class);
+        $id = $this->createMock(SessionId::class);
         $id->expects($this->once())->method('__toString')->willReturn('id');
 
         $data = ['data' => 'testing'];
@@ -97,7 +97,7 @@ class DomainSessionTest extends \PHPUnit_Framework_TestCase
         $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
         $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new DomainSession($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $updated, $expires);
 
         $serializedSession = serialize($session);
 

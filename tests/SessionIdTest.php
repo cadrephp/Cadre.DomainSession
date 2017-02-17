@@ -1,12 +1,12 @@
 <?php
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
-class DomainSessionIdTest extends \PHPUnit_Framework_TestCase
+class SessionIdTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreation()
     {
         $value = random_bytes(16);
-        $id = new DomainSessionId($value);
+        $id = new SessionId($value);
 
         $this->assertEquals($value, $id->value());
         $this->assertEquals($value, $id->startingValue());
@@ -17,7 +17,7 @@ class DomainSessionIdTest extends \PHPUnit_Framework_TestCase
     public function testRegenerate()
     {
         $value = random_bytes(16);
-        $id = new DomainSessionId($value);
+        $id = new SessionId($value);
         $id->regenerate(32);
 
         $this->assertNotEquals($value, $id->value());
@@ -29,7 +29,7 @@ class DomainSessionIdTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNewValue()
     {
-        $id = DomainSessionId::withNewValue(8);
+        $id = SessionId::withNewValue(8);
 
         $this->assertNotEquals('', $id->value());
         $this->assertEquals($id->value(), $id->startingValue());

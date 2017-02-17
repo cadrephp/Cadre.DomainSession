@@ -1,4 +1,4 @@
-# Cadre.Domain_Session
+# Cadre.DomainSession
 
 Library for tracking session data within the domain (no cookie handling).
 
@@ -19,8 +19,8 @@ You can install via composer by specifying the following repository:
 ## Example
 
 ```php
-$storage = new \Cadre\Domain_Session\DomainSessionStorageFiles('sessions');
-$manager = new \Cadre\Domain_Session\DomainSessionManager($storage);
+$storage = new \Cadre\DomainSession\DomainSessionStorageFiles('sessions');
+$manager = new \Cadre\DomainSession\DomainSessionManager($storage);
 
 $id = isset($_COOKIE['PHP_SESSION'])
     ? $_COOKIE['PHP_SESSION']

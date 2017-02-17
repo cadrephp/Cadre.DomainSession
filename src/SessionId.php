@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
-namespace Cadre\Domain_Session;
+namespace Cadre\DomainSession;
 
-class DomainSessionId
+class SessionId
 {
     protected $value;
     protected $startingValue;
@@ -12,7 +12,7 @@ class DomainSessionId
         $this->startingValue = $this->value = $id;
     }
 
-    public static function withNewValue(int $length = 16): DomainSessionId
+    public static function withNewValue(int $length = 16): SessionId
     {
         $id = new static();
         $id->regenerate($length);

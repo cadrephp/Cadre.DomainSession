@@ -65,7 +65,7 @@ class Session implements SessionInterface
         unset($this->data[$key]);
     }
 
-    public function id(): SessionId
+    public function getId(): SessionId
     {
         return $this->id;
     }
@@ -103,6 +103,7 @@ class Session implements SessionInterface
     public function lock()
     {
         $this->locked = true;
+        $this->id = SessionLockedId::createFromSessionId($this->id);
     }
 
     protected function markAsUpdated()

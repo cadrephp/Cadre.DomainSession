@@ -18,7 +18,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $session = new Session($id, $data, $created, $updated, $expires);
 
-        $this->assertEquals('id', $session->id());
+        $this->assertEquals('id', $session->getId());
         $this->assertFalse($session->isExpired());
         $this->assertEquals($created->getTimestamp(), $session->getCreated()->getTimestamp());
         $this->assertEquals($updated->getTimestamp(), $session->getUpdated()->getTimestamp());
@@ -66,6 +66,19 @@ class SessionTest extends \PHPUnit_Framework_TestCase
         $session->set('foo', 'bar');
     }
 
+    public function testRegenerateIdFromLockedSession()
+    {
+        $session = Session::createWithId(
+            SessionId::createWithNewValue()
+        );
+
+        $session->lock();
+
+        $this->expectException(SessionException::class);
+
+        $session->getId()->regenerate();
+    }
+
     public function testRenew()
     {
         $id = $this->createMock(SessionId::class);
@@ -103,6 +116,6 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $other = unserialize($serializedSession);
 
-        $this->assertEquals((string) $session->id(), (string) $other->id());
+        $this->assertEquals((string) $session->getId(), (string) $other->getId());
     }
 }

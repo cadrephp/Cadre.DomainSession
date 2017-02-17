@@ -42,11 +42,11 @@ class Memory implements StorageInterface
 
     public function write(SessionInterface $session)
     {
-        if ($session->id()->hasUpdatedValue()) {
-            $this->delete($session->id()->startingValue());
+        if ($session->getId()->hasUpdatedValue()) {
+            $this->delete($session->getId()->startingValue());
         }
 
-        $this->sessions[$session->id()->value()] = serialize([
+        $this->sessions[$session->getId()->value()] = serialize([
             'data' => $session->all(),
             'created' => $session->getCreated(),
             'updated' => $session->getUpdated(),

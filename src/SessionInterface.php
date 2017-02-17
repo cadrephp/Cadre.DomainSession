@@ -13,7 +13,7 @@ interface SessionInterface
     public function has(string $key): bool;
     public function remove(string $key);
 
-    public function id(): SessionId;
+    public function getId(): SessionId;
     public function getCreated(): DateTimeImmutable;
     public function getUpdated(): DateTimeImmutable;
     public function getExpires(): DateTimeImmutable;

@@ -43,12 +43,12 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
         $storage = new Memory();
 
         $session = $storage->createNew();
-        $id = $session->id()->value();
+        $id = $session->getId()->value();
 
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->id(), $storage->read($id)->id());
+        $this->assertEquals($session->getId(), $storage->read($id)->getId());
     }
 
     public function testWriteRegeneratedId()
@@ -56,14 +56,14 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
         $storage = new Memory();
 
         $session = $storage->createNew();
-        $id = $session->id()->value();
+        $id = $session->getId()->value();
 
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->id(), $storage->read($id)->id());
+        $this->assertEquals($session->getId(), $storage->read($id)->getId());
 
-        $session->id()->regenerate();
+        $session->getId()->regenerate();
 
         $storage->write($session);
 
@@ -82,7 +82,7 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->id(), $storage->read($id)->id());
+        $this->assertEquals($session->getId(), $storage->read($id)->getId());
 
         $storage->delete($id);
 

@@ -4,7 +4,7 @@ Library for tracking session data within the domain (no cookie handling).
 
 ## Installation
 
-I do not currently have this package on [Packagist](https://packagist.org/). 
+I do not currently have this package on [Packagist](https://packagist.org/).
 You can install via composer by specifying the following repository:
 
 ```json
@@ -30,14 +30,14 @@ $session = $manager->start($id);
 $session->set('username', 'tester');
 
 // Regenerate ID
-$session->id()->regenerate();
+$session->getId()->regenerate();
 
 // Renew Session (new expires timestamp)
 $session->renew();
 
 $manager->finish($session);
 
-if ($session->id()->hasUpdatedId()) {
-    setcookie('PHP_SESSION', $session->id()->value());
+if ($session->getId()->hasUpdatedId()) {
+    setcookie('PHP_SESSION', $session->getId()->value());
 }
 ```

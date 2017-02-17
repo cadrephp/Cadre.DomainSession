@@ -47,11 +47,11 @@ class Files implements StorageInterface
 
     public function write(SessionInterface $session)
     {
-        if ($session->id()->hasUpdatedValue()) {
-            $this->delete($session->id()->startingValue());
+        if ($session->getId()->hasUpdatedValue()) {
+            $this->delete($session->getId()->startingValue());
         }
 
-        $filename = $this->getFilename($session->id()->value());
+        $filename = $this->getFilename($session->getId()->value());
 
         file_put_contents(
             $filename,

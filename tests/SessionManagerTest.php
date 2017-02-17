@@ -18,7 +18,7 @@ class SessionManagerTest extends \PHPUnit_Framework_TestCase
         $session->set('foo', 'bar');
         $manager->finish($session);
 
-        $this->assertEquals('bar', $storage->read($session->id())->get('foo', 'default'));
+        $this->assertEquals('bar', $storage->read($session->getId())->get('foo', 'default'));
     }
 
     public function testExpiredSession()
@@ -35,11 +35,11 @@ class SessionManagerTest extends \PHPUnit_Framework_TestCase
 
         $storage->write($session);
 
-        $id = $session->id()->value();
+        $id = $session->getId()->value();
         unset($session);
 
         $session = $manager->start($id);
 
-        $this->assertNotEquals(bin2hex($id), bin2hex($session->id()->value()));
+        $this->assertNotEquals(bin2hex($id), bin2hex($session->getId()->value()));
     }
 }

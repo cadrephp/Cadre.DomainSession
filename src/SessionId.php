@@ -12,7 +12,7 @@ class SessionId
         $this->startingValue = $this->value = $id;
     }
 
-    public static function withNewValue(int $length = 16): SessionId
+    public static function createWithNewValue(int $length = 16): SessionId
     {
         $id = new static();
         $id->regenerate($length);

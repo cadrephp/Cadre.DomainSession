@@ -1,7 +1,7 @@
 <?php
 namespace Cadre\DomainSession;
 
-use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use Cadre\DomainSession\Storage\Memory;
 
@@ -31,7 +31,7 @@ class SessionManagerTest extends \PHPUnit_Framework_TestCase
         $reflectionClass = new \ReflectionClass(Session::class);
         $reflectionProperty = $reflectionClass->getProperty('expires');
         $reflectionProperty->setAccessible(true);
-        $reflectionProperty->setValue($session, new DateTime('-10 minutes', new DateTimeZone('UTC')));
+        $reflectionProperty->setValue($session, new DateTimeImmutable('-10 minutes', new DateTimeZone('UTC')));
 
         $storage->write($session);
 

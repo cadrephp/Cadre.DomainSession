@@ -20,9 +20,9 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('id', $session->id());
         $this->assertFalse($session->isExpired());
-        $this->assertEquals($created->getTimestamp(), $session->created()->getTimestamp());
-        $this->assertEquals($updated->getTimestamp(), $session->updated()->getTimestamp());
-        $this->assertEquals($expires->getTimestamp(), $session->expires()->getTimestamp());
+        $this->assertEquals($created->getTimestamp(), $session->getCreated()->getTimestamp());
+        $this->assertEquals($updated->getTimestamp(), $session->getUpdated()->getTimestamp());
+        $this->assertEquals($expires->getTimestamp(), $session->getExpires()->getTimestamp());
     }
 
     public function testAccessors()
@@ -55,8 +55,8 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testUpdateLockedSession()
     {
-        $session = Session::withId(
-            SessionId::withNewValue()
+        $session = Session::createWithId(
+            SessionId::createWithNewValue()
         );
 
         $session->lock();
@@ -81,7 +81,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             $newExpires->getTimestamp(),
-            $session->expires()->getTimestamp(),
+            $session->getExpires()->getTimestamp(),
             '',
             5
         );

@@ -3,7 +3,8 @@ declare(strict_types=1);
 namespace Cadre\DomainSession;
 
 use DateInterval;
-use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use DateTimeZone;
 
 class Session implements SessionInterface
@@ -18,22 +19,21 @@ class Session implements SessionInterface
     public function __construct(
         SessionId $id,
         array $data,
-        DateTime $created,
-        DateTime $updated,
-        DateTime $expires
+        DateTimeInterface $created,
+        DateTimeInterface $updated,
+        DateTimeInterface $expires
     ) {
         $this->id = $id;
         $this->data = $data;
-        $this->created = $created;
-        $this->updated = $updated;
-        $this->expires = $expires;
+        $this->created = new DateTimeImmutable($created->format('YmdHis'), $created->getTimezone());
+        $this->updated = new DateTimeImmutable($updated->format('YmdHis'), $updated->getTimezone());
+        $this->expires = new DateTimeImmutable($expires->format('YmdHis'), $expires->getTimezone());
     }
 
-    public static function withId(SessionId $id, $interval = 'PT3M')
+    public static function createWithId(SessionId $id, $interval = 'PT3M')
     {
-        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
-        $expires = clone ($updated);
-        $expires->add(new DateInterval($interval));
+        $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $expires = $updated->add(new DateInterval($interval));
         $session = new static($id, [], $created, $updated, $expires);
         return $session;
     }
@@ -70,32 +70,31 @@ class Session implements SessionInterface
         return $this->id;
     }
 
-    public function created(): DateTime
+    public function getCreated(): DateTimeImmutable
     {
-        return clone $this->created;
+        return $this->created;
     }
 
-    public function updated(): DateTime
+    public function getUpdated(): DateTimeImmutable
     {
-        return clone $this->updated;
+        return $this->updated;
     }
 
-    public function expires(): DateTime
+    public function getExpires(): DateTimeImmutable
     {
-        return clone $this->expires;
+        return $this->expires;
     }
 
     public function renew($interval = 'PT3M')
     {
         $this->markAsUpdated();
-        $this->expires = clone $this->updated;
-        $this->expires->add(new DateInterval($interval));
+        $this->expires = $this->updated->add(new DateInterval($interval));
     }
 
-    public function isExpired(DateTime $when = null): bool
+    public function isExpired(DateTimeInterface $when = null): bool
     {
         if (is_null($when)) {
-            $when = new DateTime('now', new DateTimeZone('UTC'));
+            $when = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         }
 
         return ($this->expires <= $when);
@@ -111,6 +110,6 @@ class Session implements SessionInterface
         if ($this->locked) {
             throw new SessionException('Cannot update a locked session');
         }
-        $this->updated = new DateTime('now', new DateTimeZone('UTC'));
+        $this->updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
     }
 }

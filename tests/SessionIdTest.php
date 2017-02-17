@@ -29,7 +29,7 @@ class SessionIdTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNewValue()
     {
-        $id = SessionId::withNewValue(8);
+        $id = SessionId::createWithNewValue(8);
 
         $this->assertNotEquals('', $id->value());
         $this->assertEquals($id->value(), $id->startingValue());

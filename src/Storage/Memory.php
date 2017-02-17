@@ -15,8 +15,8 @@ class Memory implements StorageInterface
 
     public function createNew($interval = 'PT3M'): Session
     {
-        return Session::withId(
-            SessionId::withNewValue(),
+        return Session::createWithId(
+            SessionId::createWithNewValue(),
             $interval
         );
     }
@@ -48,9 +48,9 @@ class Memory implements StorageInterface
 
         $this->sessions[$session->id()->value()] = serialize([
             'data' => $session->all(),
-            'created' => $session->created(),
-            'updated' => $session->updated(),
-            'expires' => $session->expires(),
+            'created' => $session->getCreated(),
+            'updated' => $session->getUpdated(),
+            'expires' => $session->getExpires(),
         ]);
     }
 

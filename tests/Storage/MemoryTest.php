@@ -10,8 +10,8 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testReadMissingId()
     {
-        $id = SessionId::withNewValue();
-        $session = Session::withId($id);
+        $id = SessionId::createWithNewValue();
+        $session = Session::createWithId($id);
 
         $storage = new Memory();
 
@@ -22,8 +22,8 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
 
     public function testReadUnserializableId()
     {
-        $id = SessionId::withNewValue();
-        $session = Session::withId($id);
+        $id = SessionId::createWithNewValue();
+        $session = Session::createWithId($id);
 
         $storage = new Memory();
 
@@ -74,8 +74,8 @@ class MemoryTest extends \PHPUnit_Framework_TestCase
 
     public function testDeleteMissingId()
     {
-        $id = SessionId::withNewValue();
-        $session = Session::withId($id);
+        $id = SessionId::createWithNewValue();
+        $session = Session::createWithId($id);
 
         $storage = new Memory();
 

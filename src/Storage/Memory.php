@@ -2,12 +2,12 @@
 declare(strict_types=1);
 namespace Cadre\DomainSession\Storage;
 
-use DateTime;
-use DateTimeZone;
 use Cadre\DomainSession\Session;
 use Cadre\DomainSession\SessionException;
 use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
+use DateTimeImmutable;
+use DateTimeZone;
 
 class Memory implements StorageInterface
 {
@@ -32,6 +32,7 @@ class Memory implements StorageInterface
                 new SessionId($id),
                 $source['data'],
                 $source['created'],
+                new DateTimeImmutable('now', new DateTimeZone('UTC')),
                 $source['updated'],
                 $source['expires']
             );
@@ -49,6 +50,7 @@ class Memory implements StorageInterface
         $this->sessions[$session->getId()->value()] = serialize([
             'data' => $session->all(),
             'created' => $session->getCreated(),
+            'accessed' => $session->getAccessed(),
             'updated' => $session->getUpdated(),
             'expires' => $session->getExpires(),
         ]);

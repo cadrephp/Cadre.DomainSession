@@ -1,7 +1,7 @@
 <?php
 namespace Cadre\DomainSession;
 
-use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 
 class SessionTest extends \PHPUnit_Framework_TestCase
@@ -13,10 +13,10 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $data = [];
 
-        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
-        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
+        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
 
         $this->assertEquals('id', $session->getId());
         $this->assertFalse($session->isExpired());
@@ -31,10 +31,10 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $data = ['foo' => 'bar'];
 
-        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
-        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
+        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
 
         $this->assertTrue($session->has('foo'));
         $this->assertEquals('bar', $session->get('foo'));
@@ -85,11 +85,11 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $data = [];
 
-        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
-        $oldExpires = new DateTime('+1 minutes', new DateTimeZone('UTC'));
-        $newExpires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
+        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $oldExpires = new DateTimeImmutable('+1 minutes', new DateTimeZone('UTC'));
+        $newExpires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $updated, $oldExpires);
+        $session = new Session($id, $data, $created, $accessed, $updated, $oldExpires);
         $session->renew('PT3M');
 
         $this->assertEquals(
@@ -107,10 +107,10 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $data = ['data' => 'testing'];
 
-        $created = $updated = new DateTime('now', new DateTimeZone('UTC'));
-        $expires = new DateTime('+3 minutes', new DateTimeZone('UTC'));
+        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
 
         $serializedSession = serialize($session);
 

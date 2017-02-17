@@ -11,6 +11,7 @@ class Session implements SessionInterface
 {
     protected $id;
     protected $data;
+    protected $accessed;
     protected $created;
     protected $updated;
     protected $expires;
@@ -20,21 +21,23 @@ class Session implements SessionInterface
         SessionId $id,
         array $data,
         DateTimeInterface $created,
+        DateTimeInterface $accessed,
         DateTimeInterface $updated,
         DateTimeInterface $expires
     ) {
         $this->id = $id;
         $this->data = $data;
         $this->created = new DateTimeImmutable($created->format('YmdHis'), $created->getTimezone());
+        $this->accessed = new DateTimeImmutable($accessed->format('YmdHis'), $accessed->getTimezone());
         $this->updated = new DateTimeImmutable($updated->format('YmdHis'), $updated->getTimezone());
         $this->expires = new DateTimeImmutable($expires->format('YmdHis'), $expires->getTimezone());
     }
 
     public static function createWithId(SessionId $id, $interval = 'PT3M')
     {
-        $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $expires = $updated->add(new DateInterval($interval));
-        $session = new static($id, [], $created, $updated, $expires);
+        $session = new static($id, [], $created, $accessed, $updated, $expires);
         return $session;
     }
 
@@ -68,6 +71,11 @@ class Session implements SessionInterface
     public function getId(): SessionId
     {
         return $this->id;
+    }
+
+    public function getAccessed(): DateTimeImmutable
+    {
+        return $this->accessed;
     }
 
     public function getCreated(): DateTimeImmutable

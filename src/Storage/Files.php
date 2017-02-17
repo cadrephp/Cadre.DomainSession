@@ -6,6 +6,8 @@ use Cadre\DomainSession\Session;
 use Cadre\DomainSession\SessionException;
 use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
+use DateTimeImmutable;
+use DateTimeZone;
 
 class Files implements StorageInterface
 {
@@ -37,6 +39,7 @@ class Files implements StorageInterface
                 new SessionId($id),
                 $source['data'],
                 $source['created'],
+                new DateTimeImmutable('now', new DateTimeZone('UTC')),
                 $source['updated'],
                 $source['expires']
             );
@@ -58,6 +61,7 @@ class Files implements StorageInterface
             serialize([
                 'data' => $session->all(),
                 'created' => $session->getCreated(),
+                'accessed' => $session->getAccessed(),
                 'updated' => $session->getUpdated(),
                 'expires' => $session->getExpires(),
             ])

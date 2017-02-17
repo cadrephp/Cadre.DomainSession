@@ -15,6 +15,7 @@ interface SessionInterface
 
     public function getId(): SessionId;
     public function getCreated(): DateTimeImmutable;
+    public function getAccessed(): DateTimeImmutable;
     public function getUpdated(): DateTimeImmutable;
     public function getExpires(): DateTimeImmutable;
     public function renew($interval = 'PT3M');

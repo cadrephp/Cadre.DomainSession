@@ -2,7 +2,7 @@
 
 <project name="cadre" default="build">
 
-    <target name="build" depends="prepare,lint,phpcs,phpunit" />
+    <target name="build" depends="prepare,lint,phpstan,phpcs,phpunit" />
     <target name="test" depends="phpunit" />
     <target name="coverage" depends="phpunit-coverage" />
 
@@ -15,9 +15,7 @@
     </target>
 
     <target name="lint" description="Perform syntax check of sourcecode files">
-        <apply executable="php" checkreturn="true">
-            <arg value="-l" />
-
+        <phplint>
             <fileset dir="src">
                 <include name="**/*.php" />
             </fileset>
@@ -25,7 +23,7 @@
             <fileset dir="tests">
                 <include name="**/*.php" />
             </fileset>
-        </apply>
+        </phplint>
     </target>
 
     <target name="phpcs" description="Find coding standard violations using PHP_CodeSniffer">
@@ -33,6 +31,15 @@
             <arg value="--standard=phpcs.xml" />
             <arg path="src" />
             <arg path="tests" />
+        </exec>
+    </target>
+
+    <target name="phpstan" description="Statically analyze php code">
+        <exec executable="vendor/bin/phpstan" passthru="true" checkreturn="true">
+            <arg value="analyse" />
+            <arg value="--no-progress" />
+            <arg value="--level=4" />
+            <arg path="src" />
         </exec>
     </target>
 

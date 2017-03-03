@@ -4,8 +4,9 @@ namespace Cadre\DomainSession;
 use DateTimeImmutable;
 use DateTimeZone;
 use Cadre\DomainSession\Storage\Memory;
+use PHPUnit\Framework\TestCase;
 
-class SessionManagerTest extends \PHPUnit_Framework_TestCase
+class SessionManagerTest extends TestCase
 {
     public function testNewSession()
     {
@@ -15,10 +16,10 @@ class SessionManagerTest extends \PHPUnit_Framework_TestCase
         $manager = new SessionManager($storage);
 
         $session = $manager->start($id);
-        $session->set('foo', 'bar');
+        $session->foo = 'bar';
         $manager->finish($session);
 
-        $this->assertEquals('bar', $storage->read($session->getId())->get('foo', 'default'));
+        $this->assertEquals('bar', $storage->read($session->getId())->foo ?? 'default');
     }
 
     public function testExpiredSession()

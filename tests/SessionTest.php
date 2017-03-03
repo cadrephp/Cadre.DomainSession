@@ -3,8 +3,9 @@ namespace Cadre\DomainSession;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use PHPUnit\Framework\TestCase;
 
-class SessionTest extends \PHPUnit_Framework_TestCase
+class SessionTest extends TestCase
 {
     public function testCreation()
     {
@@ -36,21 +37,21 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $session = new Session($id, $data, $created, $accessed, $updated, $expires);
 
-        $this->assertTrue($session->has('foo'));
-        $this->assertEquals('bar', $session->get('foo'));
+        $this->assertTrue(isset($session->foo));
+        $this->assertEquals('bar', $session->foo);
 
-        $this->assertFalse($session->has('biz'));
-        $this->assertEquals('default', $session->get('biz', 'default'));
+        $this->assertFalse(isset($session->biz));
+        $this->assertEquals('default', $session->biz ?? 'default');
 
-        $session->set('biz', 'testing');
+        $session->biz = 'testing';
 
-        $this->assertTrue($session->has('biz'));
-        $this->assertEquals('testing', $session->get('biz', 'default'));
+        $this->assertTrue(isset($session->biz));
+        $this->assertEquals('testing', $session->biz ?? 'default');
 
-        $session->remove('biz');
+        unset($session->biz);
 
-        $this->assertFalse($session->has('biz'));
-        $this->assertEquals('default', $session->get('biz', 'default'));
+        $this->assertFalse(isset($session->biz));
+        $this->assertEquals('default', $session->biz ?? 'default');
     }
 
     public function testUpdateLockedSession()
@@ -63,7 +64,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
         $this->expectException(SessionException::class);
 
-        $session->set('foo', 'bar');
+        $session->foo = 'bar';
     }
 
     public function testRegenerateIdFromLockedSession()

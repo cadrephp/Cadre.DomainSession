@@ -48,7 +48,7 @@ class Memory implements StorageInterface
         }
 
         $this->sessions[$session->getId()->value()] = serialize([
-            'data' => $session->all(),
+            'data' => $session->asArray(),
             'created' => $session->getCreated(),
             'accessed' => $session->getAccessed(),
             'updated' => $session->getUpdated(),

@@ -7,11 +7,11 @@ use DateTimeInterface;
 
 interface SessionInterface
 {
-    public function all();
-    public function get(string $key, $default = null);
-    public function set(string $key, $val);
-    public function has(string $key): bool;
-    public function remove(string $key);
+    public function asArray();
+    public function __get(string $key);
+    public function __set(string $key, $val);
+    public function __isset(string $key): bool;
+    public function __unset(string $key);
 
     public function getId(): SessionId;
     public function getCreated(): DateTimeImmutable;

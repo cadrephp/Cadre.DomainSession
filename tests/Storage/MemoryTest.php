@@ -5,8 +5,9 @@ use Cadre\DomainSession\Session;
 use Cadre\DomainSession\SessionException;
 use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
+use PHPUnit\Framework\TestCase;
 
-class MemoryTest extends \PHPUnit_Framework_TestCase
+class MemoryTest extends TestCase
 {
     public function testReadMissingId()
     {

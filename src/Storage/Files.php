@@ -59,7 +59,7 @@ class Files implements StorageInterface
         file_put_contents(
             $filename,
             serialize([
-                'data' => $session->all(),
+                'data' => $session->asArray(),
                 'created' => $session->getCreated(),
                 'accessed' => $session->getAccessed(),
                 'updated' => $session->getUpdated(),

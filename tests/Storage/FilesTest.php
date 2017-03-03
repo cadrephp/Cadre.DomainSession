@@ -7,8 +7,9 @@ use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\TestCase;
 
-class FilesTest extends \PHPUnit_Framework_TestCase
+class FilesTest extends TestCase
 {
     private $root;
     private $idFactory;

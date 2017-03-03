@@ -41,28 +41,28 @@ class Session implements SessionInterface
         return $session;
     }
 
-    public function all()
+    public function asArray()
     {
         return $this->data;
     }
 
-    public function get(string $key, $default = null)
+    public function __get(string $key)
     {
-        return array_key_exists($key, $this->data) ? $this->data[$key] : $default;
+        return array_key_exists($key, $this->data) ? $this->data[$key] : null;
     }
 
-    public function set(string $key, $val)
+    public function __set(string $key, $val)
     {
         $this->markAsUpdated();
         $this->data[$key] = $val;
     }
 
-    public function has(string $key): bool
+    public function __isset(string $key): bool
     {
         return array_key_exists($key, $this->data);
     }
 
-    public function remove(string $key)
+    public function __unset(string $key)
     {
         $this->markAsUpdated();
         unset($this->data[$key]);

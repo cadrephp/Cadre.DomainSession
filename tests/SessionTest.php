@@ -15,15 +15,12 @@ class SessionTest extends TestCase
         $data = [];
 
         $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated);
 
         $this->assertEquals('id', $session->getId());
-        $this->assertFalse($session->isExpired());
         $this->assertEquals($created->getTimestamp(), $session->getCreated()->getTimestamp());
         $this->assertEquals($updated->getTimestamp(), $session->getUpdated()->getTimestamp());
-        $this->assertEquals($expires->getTimestamp(), $session->getExpires()->getTimestamp());
     }
 
     public function testAccessors()
@@ -33,9 +30,8 @@ class SessionTest extends TestCase
         $data = ['foo' => 'bar'];
 
         $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated);
 
         $this->assertTrue(isset($session->foo));
         $this->assertEquals('bar', $session->foo);
@@ -80,27 +76,6 @@ class SessionTest extends TestCase
         $session->getId()->regenerate();
     }
 
-    public function testRenew()
-    {
-        $id = $this->createMock(SessionId::class);
-
-        $data = [];
-
-        $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        $oldExpires = new DateTimeImmutable('+1 minutes', new DateTimeZone('UTC'));
-        $newExpires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
-
-        $session = new Session($id, $data, $created, $accessed, $updated, $oldExpires);
-        $session->renew('PT3M');
-
-        $this->assertEquals(
-            $newExpires->getTimestamp(),
-            $session->getExpires()->getTimestamp(),
-            '',
-            5
-        );
-    }
-
     public function testSerializable()
     {
         $id = $this->createMock(SessionId::class);
@@ -109,9 +84,8 @@ class SessionTest extends TestCase
         $data = ['data' => 'testing'];
 
         $accessed = $created = $updated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
 
-        $session = new Session($id, $data, $created, $accessed, $updated, $expires);
+        $session = new Session($id, $data, $created, $accessed, $updated);
 
         $serializedSession = serialize($session);
 

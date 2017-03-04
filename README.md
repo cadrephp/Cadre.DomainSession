@@ -18,26 +18,4 @@ You can install via composer by specifying the following repository:
 
 ## Example
 
-```php
-$storage = new \Cadre\DomainSession\DomainSessionStorageFiles('sessions');
-$manager = new \Cadre\DomainSession\DomainSessionManager($storage);
-
-$id = isset($_COOKIE['PHP_SESSION'])
-    ? $_COOKIE['PHP_SESSION']
-    : null;
-
-$session = $manager->start($id);
-$session->set('username', 'tester');
-
-// Regenerate ID
-$session->getId()->regenerate();
-
-// Renew Session (new expires timestamp)
-$session->renew();
-
-$manager->finish($session);
-
-if ($session->getId()->hasUpdatedId()) {
-    setcookie('PHP_SESSION', $session->getId()->value());
-}
-```
+See [public/index.php](public/index.php)

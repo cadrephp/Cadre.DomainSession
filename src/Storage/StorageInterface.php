@@ -7,7 +7,7 @@ use Cadre\DomainSession\SessionInterface;
 
 interface StorageInterface
 {
-    public function createNew($interval = 'PT3M'): Session;
+    public function createNew(): Session;
     public function read(string $id): Session;
     public function write(SessionInterface $session);
     public function delete(string $id);

@@ -5,6 +5,8 @@ use Cadre\DomainSession\Session;
 use Cadre\DomainSession\SessionException;
 use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
+use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 
 class MemoryTest extends TestCase
@@ -31,8 +33,14 @@ class MemoryTest extends TestCase
         $reflectionClass = new \ReflectionClass(Memory::class);
         $reflectionProperty = $reflectionClass->getProperty('sessions');
         $reflectionProperty->setAccessible(true);
-        $bogus = [$id->value() => 'bogus-dsadh89h32huih3jk4h23'];
-        $reflectionProperty->setValue($storage, $bogus);
+        $sessions = [$id->value() => 'bogus-dsadh89h32huih3jk4h23'];
+        $reflectionProperty->setValue($storage, $sessions);
+
+        $reflectionProperty = $reflectionClass->getProperty('mtime');
+        $reflectionProperty->setAccessible(true);
+        $expires = new DateTimeImmutable('+3 minutes', new DateTimeZone('UTC'));
+        $mtime = [$id->value() => $expires];
+        $reflectionProperty->setValue($storage, $mtime);
 
         $this->expectException(SessionException::class);
 
@@ -86,6 +94,26 @@ class MemoryTest extends TestCase
         $this->assertEquals($session->getId(), $storage->read($id)->getId());
 
         $storage->delete($id);
+
+        $this->expectException(SessionException::class);
+
+        $storage->read($id);
+    }
+
+    public function testReadExpiredSession()
+    {
+        $id = SessionId::createWithNewValue();
+        $session = Session::createWithId($id);
+
+        $storage = new Memory();
+        $storage->write($session);
+
+        $reflectionClass = new \ReflectionClass(Memory::class);
+        $reflectionProperty = $reflectionClass->getProperty('mtime');
+        $reflectionProperty->setAccessible(true);
+        $expires = new DateTimeImmutable('-10 minutes', new DateTimeZone('UTC'));
+        $mtime = [$id->value() => $expires];
+        $reflectionProperty->setValue($storage, $mtime);
 
         $this->expectException(SessionException::class);
 

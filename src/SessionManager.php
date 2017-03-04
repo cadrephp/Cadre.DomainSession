@@ -13,17 +13,16 @@ class SessionManager
         $this->storage = $storage;
     }
 
-    public function start(string $id): SessionInterface
+    public function start($id): SessionInterface
     {
-        try {
-            $session = $this->storage->read($id);
-        } catch (SessionException $e) {
+        if (empty($id)) {
             $session = $this->storage->createNew();
-        }
-
-        if ($session instanceof SessionInterface && $session->isExpired()) {
-            $this->storage->delete($id);
-            $session = $this->storage->createNew();
+        } else {
+            try {
+                $session = $this->storage->read($id);
+            } catch (SessionException $e) {
+                $session = $this->storage->createNew();
+            }
         }
 
         return $session;

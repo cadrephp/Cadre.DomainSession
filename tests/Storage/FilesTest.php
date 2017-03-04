@@ -34,7 +34,6 @@ class FilesTest extends TestCase
     public function testReadUnserializableId()
     {
         $id = SessionId::createWithNewValue();
-        $session = Session::createWithId($id);
 
         vfsStream::newFile(bin2hex($id))
             ->at($this->root)
@@ -98,5 +97,27 @@ class FilesTest extends TestCase
         $this->expectException(SessionException::class);
 
         $s2 = $storage->read($id);
+    }
+
+    public function testReadExpiredSession()
+    {
+        $id = SessionId::createWithNewValue();
+        $session = Session::createWithId($id);
+
+        vfsStream::newFile(bin2hex($id))
+            ->at($this->root)
+            ->setContent(serialize([
+                'data' => $session->asArray(),
+                'created' => $session->getCreated(),
+                'accessed' => $session->getAccessed(),
+                'updated' => $session->getUpdated(),
+            ]))
+            ->lastModified(strtotime('-10 minutes'));
+
+        $storage = new Files($this->root->url());
+
+        $this->expectException(SessionException::class);
+
+        $storage->read($id);
     }
 }

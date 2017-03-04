@@ -6,29 +6,41 @@ use Cadre\DomainSession\Session;
 use Cadre\DomainSession\SessionException;
 use Cadre\DomainSession\SessionId;
 use Cadre\DomainSession\SessionInterface;
+use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 
 class Files implements StorageInterface
 {
     protected $path;
+    protected $expiresInterval;
 
-    public function __construct($path)
+    public function __construct(string $path, string $expiresInterval = 'PT3M')
     {
         $this->path = $path;
+        $this->expiresInterval = new DateInterval($expiresInterval);
     }
 
-    public function createNew($interval = 'PT3M'): Session
+    public function createNew(): Session
     {
         return Session::createWithId(
-            SessionId::createWithNewValue(),
-            $interval
+            SessionId::createWithNewValue()
         );
     }
 
     public function read(string $id): Session
     {
         $filename = $this->getFilename($id);
+
+        if (file_exists($filename)) {
+            $expires = (new DateTimeImmutable())
+                ->setTimestamp(filemtime($filename))
+                ->add($this->expiresInterval);
+            $when = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+            if ($expires <= $when) {
+                $this->delete($id);
+            }
+        }
 
         if (file_exists($filename)) {
             $source = $this->unserialize(file_get_contents($filename));
@@ -40,8 +52,7 @@ class Files implements StorageInterface
                 $source['data'],
                 $source['created'],
                 new DateTimeImmutable('now', new DateTimeZone('UTC')),
-                $source['updated'],
-                $source['expires']
+                $source['updated']
             );
         }
 
@@ -63,7 +74,6 @@ class Files implements StorageInterface
                 'created' => $session->getCreated(),
                 'accessed' => $session->getAccessed(),
                 'updated' => $session->getUpdated(),
-                'expires' => $session->getExpires(),
             ])
         );
     }

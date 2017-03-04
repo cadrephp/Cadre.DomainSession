@@ -12,7 +12,7 @@ class SessionManagerTest extends TestCase
     {
         $id = '';
 
-        $storage = new Memory();
+        $storage = new Memory('PT3M');
         $manager = new SessionManager($storage);
 
         $session = $manager->start($id);
@@ -24,20 +24,19 @@ class SessionManagerTest extends TestCase
 
     public function testExpiredSession()
     {
-        $storage = new Memory();
+        $storage = new Memory('PT3M');
         $manager = new SessionManager($storage);
 
-        $session = $storage->createNew('PT3M');
-
-        $reflectionClass = new \ReflectionClass(Session::class);
-        $reflectionProperty = $reflectionClass->getProperty('expires');
-        $reflectionProperty->setAccessible(true);
-        $reflectionProperty->setValue($session, new DateTimeImmutable('-10 minutes', new DateTimeZone('UTC')));
-
-        $storage->write($session);
-
+        $session = $storage->createNew();
         $id = $session->getId()->value();
+        $storage->write($session);
         unset($session);
+
+        $reflectionClass = new \ReflectionClass(Memory::class);
+        $reflectionProperty = $reflectionClass->getProperty('mtime');
+        $reflectionProperty->setAccessible(true);
+        $mtime = [$id => new DateTimeImmutable('-10 minutes', new DateTimeZone('UTC'))];
+        $reflectionProperty->setValue($storage, $mtime);
 
         $session = $manager->start($id);
 

@@ -16,7 +16,6 @@ class SessionId
     {
         $id = new static();
         $id->regenerate($length);
-        $id->startingValue = $id->value;
         return $id;
     }
 

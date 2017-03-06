@@ -3,10 +3,11 @@ declare(strict_types=1);
 namespace Cadre\DomainSession;
 
 use Cadre\DomainSession\Storage\StorageInterface;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class SessionManager
+class SessionManager implements LoggerAwareInterface
 {
     protected $storage;
     protected $logger;

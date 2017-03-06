@@ -56,7 +56,7 @@ class FilesTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
     }
 
     public function testWriteRegeneratedId()
@@ -69,7 +69,10 @@ class FilesTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
+
+        unset($session);
+        $session = $storage->read($id);
 
         $session->getId()->regenerate();
 
@@ -90,13 +93,20 @@ class FilesTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
 
         $storage->delete($id);
 
         $this->expectException(SessionException::class);
 
         $s2 = $storage->read($id);
+    }
+
+    public function testDeleteEmptyId()
+    {
+        $storage = new Files($this->root->url());
+
+        $storage->delete('');
     }
 
     public function testReadExpiredSession()

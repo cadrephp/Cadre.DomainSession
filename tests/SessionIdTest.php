@@ -34,8 +34,8 @@ class SessionIdTest extends TestCase
         $id = SessionId::createWithNewValue(8);
 
         $this->assertNotEquals('', $id->value());
-        $this->assertEquals($id->value(), $id->startingValue());
+        $this->assertEquals('', $id->startingValue());
         $this->assertEquals(16, strlen($id));
-        $this->assertFalse($id->hasUpdatedValue());
+        $this->assertTrue($id->hasUpdatedValue());
     }
 }

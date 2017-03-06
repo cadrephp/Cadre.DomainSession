@@ -57,7 +57,7 @@ class MemoryTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
     }
 
     public function testWriteRegeneratedId()
@@ -70,7 +70,10 @@ class MemoryTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
+
+        unset($session);
+        $session = $storage->read($id);
 
         $session->getId()->regenerate();
 
@@ -91,7 +94,7 @@ class MemoryTest extends TestCase
         $storage->write($session);
 
         $this->assertInstanceOf(SessionInterface::class, $storage->read($id));
-        $this->assertEquals($session->getId(), $storage->read($id)->getId());
+        $this->assertEquals($session->getId()->value(), $storage->read($id)->getId()->value());
 
         $storage->delete($id);
 

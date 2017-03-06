@@ -9,10 +9,11 @@ use Cadre\DomainSession\SessionInterface;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class Files implements StorageInterface
+class Files implements StorageInterface, LoggerAwareInterface
 {
     protected $path;
     protected $expiresInterval;
@@ -97,6 +98,10 @@ class Files implements StorageInterface
 
     public function delete(string $id)
     {
+        if (empty($id)) {
+            return;
+        }
+
         $this->logger->debug('Storage\Files::delete', compact('id'));
 
         $filename = $this->getFilename($id);

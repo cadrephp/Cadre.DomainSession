@@ -9,10 +9,11 @@ use Cadre\DomainSession\SessionInterface;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class Memory implements StorageInterface
+class Memory implements StorageInterface, LoggerAwareInterface
 {
     protected $expiresInterval;
     protected $sessions = [];
@@ -91,6 +92,10 @@ class Memory implements StorageInterface
 
     public function delete(string $id)
     {
+        if (empty($id)) {
+            return;
+        }
+
         $this->logger->debug('Storage\Memory::delete', compact('id'));
 
         if (isset($this->sessions[$id])) {

@@ -1,4 +1,5 @@
 .DS_Store
 /build
+/public/debug.log
 /public/sessions
 /vendor

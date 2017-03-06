@@ -35,9 +35,9 @@ class SessionId
         return $this->startingValue !== $this->value;
     }
 
-    public function regenerate(int $length = 16): string
+    public function regenerate(int $bytes = 16): string
     {
-        $this->value = random_bytes($length);
+        $this->value = bin2hex(random_bytes($bytes));
         return $this->value;
     }
 

@@ -25,7 +25,7 @@ class SessionIdTest extends TestCase
         $this->assertNotEquals($value, $id->value());
         $this->assertEquals($value, $id->startingValue());
         $this->assertNotEquals($value, (string) $id);
-        $this->assertEquals(32, strlen($id));
+        $this->assertEquals(64, strlen($id));
         $this->assertTrue($id->hasUpdatedValue());
     }
 
@@ -35,7 +35,7 @@ class SessionIdTest extends TestCase
 
         $this->assertNotEquals('', $id->value());
         $this->assertEquals($id->value(), $id->startingValue());
-        $this->assertEquals(8, strlen($id));
+        $this->assertEquals(16, strlen($id));
         $this->assertFalse($id->hasUpdatedValue());
     }
 }

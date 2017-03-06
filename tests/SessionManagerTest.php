@@ -5,6 +5,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Cadre\DomainSession\Storage\Memory;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class SessionManagerTest extends TestCase
 {
@@ -40,6 +41,6 @@ class SessionManagerTest extends TestCase
 
         $session = $manager->start($id);
 
-        $this->assertNotEquals(bin2hex($id), bin2hex($session->getId()->value()));
+        $this->assertNotEquals($id, $session->getId()->value());
     }
 }

@@ -35,7 +35,7 @@ class FilesTest extends TestCase
     {
         $id = SessionId::createWithNewValue();
 
-        vfsStream::newFile(bin2hex($id))
+        vfsStream::newFile($id)
             ->at($this->root)
             ->setContent('bogus-dsadh89h32huih3jk4h23');
 
@@ -104,7 +104,7 @@ class FilesTest extends TestCase
         $id = SessionId::createWithNewValue();
         $session = Session::createWithId($id);
 
-        vfsStream::newFile(bin2hex($id))
+        vfsStream::newFile($id)
             ->at($this->root)
             ->setContent(serialize([
                 'data' => $session->asArray(),

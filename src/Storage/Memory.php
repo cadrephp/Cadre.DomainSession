@@ -9,20 +9,30 @@ use Cadre\DomainSession\SessionInterface;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class Memory implements StorageInterface
 {
     protected $expiresInterval;
     protected $sessions = [];
     protected $mtime = [];
+    protected $logger;
 
     public function __construct(string $expiresInterval = 'PT3M')
     {
         $this->expiresInterval = new DateInterval($expiresInterval);
+        $this->setLogger(new NullLogger());
+    }
+
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     public function createNew(): Session
     {
+        $this->logger->debug('Storage\Memory::createNew');
         return Session::createWithId(
             SessionId::createWithNewValue()
         );
@@ -30,10 +40,13 @@ class Memory implements StorageInterface
 
     public function read(string $id): Session
     {
+        $this->logger->debug('Storage\Memory::read', compact('id'));
+
         if (isset($this->sessions[$id])) {
             $expires = $this->mtime[$id]->add($this->expiresInterval);
             $when = new DateTimeImmutable('now', new DateTimeZone('UTC'));
             if ($expires <= $when) {
+                $this->logger->debug('Storage\Memory::read::expired', compact('id'));
                 $this->delete($id);
             }
         }
@@ -58,7 +71,11 @@ class Memory implements StorageInterface
 
     public function write(SessionInterface $session)
     {
+        $id = $session->getId()->value();
+        $this->logger->debug('Storage\Memory::write', compact('id'));
+
         if ($session->getId()->hasUpdatedValue()) {
+            $this->logger->debug('Storage\Memory::write::updatedKey', compact('id'));
             $this->delete($session->getId()->startingValue());
         }
 
@@ -74,6 +91,8 @@ class Memory implements StorageInterface
 
     public function delete(string $id)
     {
+        $this->logger->debug('Storage\Memory::delete', compact('id'));
+
         if (isset($this->sessions[$id])) {
             unset($this->sessions[$id]);
             unset($this->mtime[$id]);

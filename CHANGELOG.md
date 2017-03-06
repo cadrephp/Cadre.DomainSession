@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## 0.4.0 - 2017-03-06
+### Changed
+- A newly generated SessionId is considered to have a changed value
+### Added
+- Support for Psr\Log in SessionManager and Storage
+
 ## 0.3.0 - 2017-03-04
 ### Changed
 - Switched back to __get, __set, __isset, and __unset magic methods from get, set, has, and remove methods
